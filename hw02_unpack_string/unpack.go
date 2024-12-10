@@ -9,6 +9,14 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
+func isSlash(r []rune) bool {
+	return len(r) == 1 && r[0] == '\\'
+}
+
+func isDigit(r []rune) bool {
+	return len(r) == 1 && unicode.IsDigit(r[0])
+}
+
 func Unpack(str string) (string, error) {
 	if str == "" {
 		return "", nil
@@ -23,16 +31,28 @@ func Unpack(str string) (string, error) {
 	gr.Next()
 	runes := gr.Runes()
 
-	if len(runes) == 1 && unicode.IsDigit(runes[0]) {
+	if isDigit(runes) {
 		return "", ErrInvalidString
 	}
 
-	result = append(result, runes)
+	if isSlash(runes) {
+		needShield = true
+	} else {
+		result = append(result, runes)
+	}
 
 	for i := 1; gr.Next(); i++ {
 		runes := gr.Runes()
 
-		if len(runes) != 1 {
+		d := isDigit(runes)
+		s := isSlash(runes)
+
+		// Принципиально важны только слеш и число
+		if !d && !s {
+			if needShield {
+				return "", ErrInvalidString
+			}
+
 			result = append(result, runes)
 			prevNum = false
 			continue
@@ -40,7 +60,8 @@ func Unpack(str string) (string, error) {
 
 		sym := runes[0]
 
-		if sym == '\\' {
+		// Если ловим слеш, хотим что-то экранировать
+		if s {
 			prevNum = false
 
 			if needShield {
@@ -53,42 +74,36 @@ func Unpack(str string) (string, error) {
 			continue
 		}
 
-		if unicode.IsDigit(sym) {
-			amount, err := strconv.Atoi(string(sym))
-
-			if err != nil {
-				return "", err
-			}
-
-			if needShield {
-				result = append(result, runes)
-				needShield = false
-				continue
-			} else if prevNum {
-				return "", ErrInvalidString
-			}
-
-			prevNum = true
-
-			if amount == 0 {
-				result = result[:len(result)-1]
-				continue
-			}
-
-			if amount == 1 {
-				continue
-			}
-
-			for range amount - 1 {
-				result = append(result, result[len(result)-1])
-			}
-		} else {
-			if needShield {
-				return "", ErrInvalidString
-			}
-
+		// Тут уже только число
+		if needShield {
 			result = append(result, runes)
-			prevNum = false
+			needShield = false
+			continue
+		}
+
+		if prevNum {
+			return "", ErrInvalidString
+		}
+
+		amount, err := strconv.Atoi(string(sym))
+
+		if err != nil {
+			return "", err
+		}
+
+		prevNum = true
+
+		if amount == 0 {
+			result = result[:len(result)-1]
+			continue
+		}
+
+		if amount == 1 {
+			continue
+		}
+
+		for range amount - 1 {
+			result = append(result, result[len(result)-1])
 		}
 	}
 
