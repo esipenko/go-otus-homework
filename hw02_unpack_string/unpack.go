@@ -2,6 +2,7 @@ package hw02unpackstring
 
 import (
 	"errors"
+	"github.com/rivo/uniseg"
 	"strconv"
 	"unicode"
 )
@@ -13,60 +14,112 @@ func Unpack(str string) (string, error) {
 		return "", nil
 	}
 
-	chars := []rune(str)
-
-	//gr := uniseg.NewGraphemes(str)
-
 	result := make([]rune, 0)
-	var pChar rune
 
-	//if unicode.IsDigit(chars[0]) {
-	//	return "", ErrInvalidString
-	//}
+	gr := uniseg.NewGraphemes(str)
+	gr.Next()
 
-	for idx, r := range chars {
-		if unicode.IsDigit(r) {
+	r := gr.Runes()
+
+	if len(r) == 1 {
+		if unicode.IsDigit(r[0]) {
+			return "", ErrInvalidString
+		}
+	}
+
+	result = append(result, r...)
+	pChar := r
+	for gr.Next() {
+		r = gr.Runes()
+
+		if len(r) > 1 {
+			result = append(result, r...)
+			pChar = r
+			continue
+		}
+
+		if unicode.IsDigit(r[0]) {
 			amount, err := strconv.Atoi(string(r))
+			isChar := len(pChar) == 1
 
 			if err != nil {
 				return "", err
 			}
 
-			if idx == 0 {
-				return "", ErrInvalidString
-			}
-
-			if unicode.IsDigit(pChar) {
+			if isChar && unicode.IsDigit(pChar[0]) {
 				return "", ErrInvalidString
 			}
 
 			if amount == 0 {
-				result = result[:len(result)-1]
+				result = result[:len(result)-len(pChar)]
 				continue
 			}
 
 			for range amount - 1 {
-				result = append(result, result[len(result)-1])
+				result = append(result, pChar...)
 			}
 		} else {
-			result = append(result, r)
+			result = append(result, r...)
 		}
 
 		pChar = r
 	}
 
-	return string(result), nil
-	// Iterate over grapheme clusters
 	//for gr.Next() {
-	//	r := gr.Runes()
+	//	r = gr.Runes()
+	//	t := string(r)
+	//	fmt.Println(t)
 	//
-	//	if ()
 	//	if len(r) > 1 {
-	//		result = result
-	//		fmt.Print(string(r[0]), " ")
-	//
+	//		result = append(result, r...)
+	//		pChar = r
+	//		continue
 	//	}
-	//	fmt.Println(gr.Runes())
+	//
+	//	if unicode.IsDigit(r[0]) {
+	//		amount, err := strconv.Atoi(string(r))
+	//		isChar := len(pChar) == 1
+	//
+	//		if err != nil {
+	//			return "", err
+	//		}
+	//
+	//		if isChar && unicode.IsDigit(pChar[0]) {
+	//			return "", ErrInvalidString
+	//		}
+	//
+	//		//if isChar {
+	//		//	if pChar[0] == '\\' {
+	//		//		result = append(result, r...)
+	//		//		pChar = append(pChar, r...)
+	//		//		continue
+	//		//	}
+	//		//} else {
+	//		//	if pChar[0] == '\\' && pChar[1] == '\\' {
+	//		//
+	//		//	}
+	//		//}
+	//
+	//		if amount == 0 {
+	//			result = result[:len(result)-len(pChar)]
+	//			continue
+	//		}
+	//
+	//		for range amount - 1 {
+	//			result = append(result, pChar...)
+	//		}
+	//	} else if string(r[0]) == `\` {
+	//		if pChar[0] == '\\' {
+	//			result = append(result, r...)
+	//		}
+	//
+	//		pChar = r
+	//	} else {
+	//		result = append(result, r...)
+	//	}
+	//
+	//	pChar = r
 	//}
-	//return "", nil
+
+	return string(result), nil
 }
