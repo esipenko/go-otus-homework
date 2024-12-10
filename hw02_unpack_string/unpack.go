@@ -14,112 +14,91 @@ func Unpack(str string) (string, error) {
 		return "", nil
 	}
 
-	result := make([]rune, 0)
-
 	gr := uniseg.NewGraphemes(str)
-	gr.Next()
 
-	r := gr.Runes()
+	result := make([][]rune, 0)
+	needShield := false
+	prevNum := false
 
-	if len(r) == 1 {
-		if unicode.IsDigit(r[0]) {
-			return "", ErrInvalidString
-		}
-	}
+	for i := 0; gr.Next(); i++ {
+		runes := gr.Runes()
+		isChar := len(runes) == 1
 
-	result = append(result, r...)
-	pChar := r
-	for gr.Next() {
-		r = gr.Runes()
+		if i == 0 {
+			if isChar && unicode.IsDigit(runes[0]) {
+				return "", ErrInvalidString
+			}
 
-		if len(r) > 1 {
-			result = append(result, r...)
-			pChar = r
+			result = append(result, runes)
 			continue
 		}
 
-		if unicode.IsDigit(r[0]) {
-			amount, err := strconv.Atoi(string(r))
-			isChar := len(pChar) == 1
+		if !isChar {
+			result = append(result, runes)
+			prevNum = false
+			continue
+		}
+
+		sym := runes[0]
+
+		if sym == '\\' {
+			prevNum = false
+
+			if needShield {
+				result = append(result, runes)
+				needShield = false
+				continue
+			}
+
+			needShield = true
+			continue
+		}
+
+		if unicode.IsDigit(sym) {
+			amount, err := strconv.Atoi(string(sym))
 
 			if err != nil {
 				return "", err
 			}
 
-			if isChar && unicode.IsDigit(pChar[0]) {
+			if needShield {
+				result = append(result, runes)
+				needShield = false
+				continue
+			} else if prevNum {
 				return "", ErrInvalidString
 			}
 
+			prevNum = true
+
 			if amount == 0 {
-				result = result[:len(result)-len(pChar)]
+				result = result[:len(result)-1]
+				continue
+			}
+
+			if amount == 1 {
 				continue
 			}
 
 			for range amount - 1 {
-				result = append(result, pChar...)
+				result = append(result, result[len(result)-1])
 			}
 		} else {
-			result = append(result, r...)
-		}
+			if needShield {
+				return "", ErrInvalidString
+			}
 
-		pChar = r
+			result = append(result, runes)
+			prevNum = false
+		}
 	}
 
-	//for gr.Next() {
-	//	r = gr.Runes()
-	//	t := string(r)
-	//	fmt.Println(t)
-	//
-	//	if len(r) > 1 {
-	//		result = append(result, r...)
-	//		pChar = r
-	//		continue
-	//	}
-	//
-	//	if unicode.IsDigit(r[0]) {
-	//		amount, err := strconv.Atoi(string(r))
-	//		isChar := len(pChar) == 1
-	//
-	//		if err != nil {
-	//			return "", err
-	//		}
-	//
-	//		if isChar && unicode.IsDigit(pChar[0]) {
-	//			return "", ErrInvalidString
-	//		}
-	//
-	//		//if isChar {
-	//		//	if pChar[0] == '\\' {
-	//		//		result = append(result, r...)
-	//		//		pChar = append(pChar, r...)
-	//		//		continue
-	//		//	}
-	//		//} else {
-	//		//	if pChar[0] == '\\' && pChar[1] == '\\' {
-	//		//
-	//		//	}
-	//		//}
-	//
-	//		if amount == 0 {
-	//			result = result[:len(result)-len(pChar)]
-	//			continue
-	//		}
-	//
-	//		for range amount - 1 {
-	//			result = append(result, pChar...)
-	//		}
-	//	} else if string(r[0]) == `\` {
-	//		if pChar[0] == '\\' {
-	//			result = append(result, r...)
-	//		}
-	//
-	//		pChar = r
-	//	} else {
-	//		result = append(result, r...)
-	//	}
-	//
-	//	pChar = r
-	//}
+	resStr := ""
 
-	return string(result), nil
+	for _, r := range result {
+		resStr = resStr + string(r)
+	}
+
+	return resStr, nil
+
 }
