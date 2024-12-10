@@ -9,11 +9,11 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
-func isSlash(r []rune) bool {
+func checkSlash(r []rune) bool {
 	return len(r) == 1 && r[0] == '\\'
 }
 
-func isDigit(r []rune) bool {
+func checkDigit(r []rune) bool {
 	return len(r) == 1 && unicode.IsDigit(r[0])
 }
 
@@ -25,18 +25,18 @@ func Unpack(str string) (string, error) {
 	gr := uniseg.NewGraphemes(str)
 
 	result := make([][]rune, 0)
-	needShield := false
+	tryingShield := false
 	prevNum := false
 
 	gr.Next()
 	runes := gr.Runes()
 
-	if isDigit(runes) {
+	if checkDigit(runes) {
 		return "", ErrInvalidString
 	}
 
-	if isSlash(runes) {
-		needShield = true
+	if checkSlash(runes) {
+		tryingShield = true
 	} else {
 		result = append(result, runes)
 	}
@@ -44,12 +44,12 @@ func Unpack(str string) (string, error) {
 	for i := 1; gr.Next(); i++ {
 		runes := gr.Runes()
 
-		d := isDigit(runes)
-		s := isSlash(runes)
+		isDigit := checkDigit(runes)
+		isSlash := checkSlash(runes)
 
 		// Принципиально важны только слеш и число
-		if !d && !s {
-			if needShield {
+		if !isDigit && !isSlash {
+			if tryingShield {
 				return "", ErrInvalidString
 			}
 
@@ -60,27 +60,20 @@ func Unpack(str string) (string, error) {
 
 		sym := runes[0]
 
+		if tryingShield {
+			result = append(result, runes)
+			tryingShield = false
+			continue
+		}
+
 		// Если ловим слеш, хотим что-то экранировать
-		if s {
+		if isSlash {
 			prevNum = false
-
-			if needShield {
-				result = append(result, runes)
-				needShield = false
-				continue
-			}
-
-			needShield = true
+			tryingShield = true
 			continue
 		}
 
 		// Тут уже только число
-		if needShield {
-			result = append(result, runes)
-			needShield = false
-			continue
-		}
-
 		if prevNum {
 			return "", ErrInvalidString
 		}
@@ -98,11 +91,7 @@ func Unpack(str string) (string, error) {
 			continue
 		}
 
-		if amount == 1 {
-			continue
-		}
-
-		for range amount - 1 {
+		for i := 1; i < amount; i++ {
 			result = append(result, result[len(result)-1])
 		}
 	}
@@ -110,7 +99,7 @@ func Unpack(str string) (string, error) {
 	resStr := ""
 
 	for _, r := range result {
-		resStr = resStr + string(r)
+		resStr += string(r)
 	}
 
 	return resStr, nil
