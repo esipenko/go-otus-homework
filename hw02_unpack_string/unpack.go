@@ -20,20 +20,19 @@ func Unpack(str string) (string, error) {
 	needShield := false
 	prevNum := false
 
-	for i := 0; gr.Next(); i++ {
+	gr.Next()
+	runes := gr.Runes()
+
+	if len(runes) == 1 && unicode.IsDigit(runes[0]) {
+		return "", ErrInvalidString
+	}
+
+	result = append(result, runes)
+
+	for i := 1; gr.Next(); i++ {
 		runes := gr.Runes()
-		isChar := len(runes) == 1
 
-		if i == 0 {
-			if isChar && unicode.IsDigit(runes[0]) {
-				return "", ErrInvalidString
-			}
-
-			result = append(result, runes)
-			continue
-		}
-
-		if !isChar {
+		if len(runes) != 1 {
 			result = append(result, runes)
 			prevNum = false
 			continue
