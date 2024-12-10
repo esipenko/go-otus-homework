@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/rivo/uniseg"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -24,9 +25,11 @@ func Unpack(str string) (string, error) {
 
 	gr := uniseg.NewGraphemes(str)
 
-	result := make([][]rune, 0)
+	res := ""
+
 	tryingShield := false
-	prevNum := false
+	hasPrevNum := false
+	prevStr := ""
 
 	gr.Next()
 	runes := gr.Runes()
@@ -38,7 +41,8 @@ func Unpack(str string) (string, error) {
 	if checkSlash(runes) {
 		tryingShield = true
 	} else {
-		result = append(result, runes)
+		prevStr = string(runes)
+		res += prevStr
 	}
 
 	for i := 1; gr.Next(); i++ {
@@ -53,28 +57,33 @@ func Unpack(str string) (string, error) {
 				return "", ErrInvalidString
 			}
 
-			result = append(result, runes)
-			prevNum = false
+			prevStr = string(runes)
+			res += prevStr
+
+			hasPrevNum = false
 			continue
 		}
 
 		sym := runes[0]
 
 		if tryingShield {
-			result = append(result, runes)
 			tryingShield = false
+
+			prevStr = string(runes)
+			res += prevStr
+
 			continue
 		}
 
 		// Если ловим слеш, хотим что-то экранировать
 		if isSlash {
-			prevNum = false
+			hasPrevNum = false
 			tryingShield = true
 			continue
 		}
 
 		// Тут уже только число
-		if prevNum {
+		if hasPrevNum {
 			return "", ErrInvalidString
 		}
 
@@ -84,24 +93,17 @@ func Unpack(str string) (string, error) {
 			return "", err
 		}
 
-		prevNum = true
+		hasPrevNum = true
 
 		if amount == 0 {
-			result = result[:len(result)-1]
+			end := len(res) - len(prevStr)
+			res = res[:end]
 			continue
 		}
 
-		for i := 1; i < amount; i++ {
-			result = append(result, result[len(result)-1])
-		}
+		res += strings.Repeat(prevStr, amount-1)
 	}
 
-	resStr := ""
-
-	for _, r := range result {
-		resStr += string(r)
-	}
-
-	return resStr, nil
+	return res, nil
 
 }
