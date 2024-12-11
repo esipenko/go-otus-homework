@@ -10,46 +10,19 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
-func checkSlash(r []rune) bool {
-	return len(r) == 1 && r[0] == '\\'
-}
-
-func checkDigit(r []rune) bool {
-	return len(r) == 1 && unicode.IsDigit(r[0])
-}
-
 func Unpack(str string) (string, error) {
-	if str == "" {
-		return "", nil
-	}
-
 	gr := uniseg.NewGraphemes(str)
-
 	res := ""
 
 	tryingShield := false
 	hasPrevNum := false
 	prevStr := ""
 
-	gr.Next()
-	runes := gr.Runes()
-
-	if checkDigit(runes) {
-		return "", ErrInvalidString
-	}
-
-	if checkSlash(runes) {
-		tryingShield = true
-	} else {
-		prevStr = string(runes)
-		res += prevStr
-	}
-
-	for i := 1; gr.Next(); i++ {
+	for gr.Next() {
 		runes := gr.Runes()
 
-		isDigit := checkDigit(runes)
-		isSlash := checkSlash(runes)
+		isDigit := len(runes) == 1 && unicode.IsDigit(runes[0])
+		isSlash := len(runes) == 1 && runes[0] == '\\'
 
 		// Принципиально важны только слеш и число
 		if !isDigit && !isSlash {
@@ -82,15 +55,11 @@ func Unpack(str string) (string, error) {
 			continue
 		}
 
-		// Тут уже только число
-		if hasPrevNum {
-			return "", ErrInvalidString
-		}
-
 		amount, err := strconv.Atoi(string(sym))
 
-		if err != nil {
-			return "", err
+		// Тут уже только число
+		if hasPrevNum || prevStr == "" || err != nil {
+			return "", ErrInvalidString
 		}
 
 		hasPrevNum = true
@@ -105,5 +74,4 @@ func Unpack(str string) (string, error) {
 	}
 
 	return res, nil
-
 }
