@@ -2,10 +2,11 @@ package hw02unpackstring
 
 import (
 	"errors"
-	"github.com/rivo/uniseg"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/rivo/uniseg"
 )
 
 var ErrInvalidString = errors.New("invalid string")
