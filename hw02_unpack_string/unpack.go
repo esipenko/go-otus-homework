@@ -5,25 +5,21 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/rivo/uniseg"
 )
 
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(str string) (string, error) {
-	gr := uniseg.NewGraphemes(str)
+	runes := []rune(str)
 	res := ""
 
 	tryingShield := false
 	hasPrevNum := false
 	prevStr := ""
 
-	for gr.Next() {
-		runes := gr.Runes()
-
-		isDigit := len(runes) == 1 && unicode.IsDigit(runes[0])
-		isSlash := len(runes) == 1 && runes[0] == '\\'
+	for _, r := range runes {
+		isDigit := unicode.IsDigit(r)
+		isSlash := r == '\\'
 
 		// Принципиально важны только слеш и число
 		if !isDigit && !isSlash {
@@ -31,19 +27,17 @@ func Unpack(str string) (string, error) {
 				return "", ErrInvalidString
 			}
 
-			prevStr = string(runes)
+			prevStr = string(r)
 			res += prevStr
 
 			hasPrevNum = false
 			continue
 		}
 
-		sym := runes[0]
-
 		if tryingShield {
 			tryingShield = false
 
-			prevStr = string(runes)
+			prevStr = string(r)
 			res += prevStr
 
 			continue
@@ -56,7 +50,7 @@ func Unpack(str string) (string, error) {
 			continue
 		}
 
-		amount, err := strconv.Atoi(string(sym))
+		amount, err := strconv.Atoi(string(r))
 
 		// Тут уже только число
 		if hasPrevNum || prevStr == "" || err != nil {
