@@ -10,14 +10,13 @@ import (
 var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(str string) (string, error) {
-	runes := []rune(str)
 	res := ""
 
 	tryingShield := false
 	hasPrevNum := false
 	prevStr := ""
 
-	for _, r := range runes {
+	for _, r := range str {
 		isDigit := unicode.IsDigit(r)
 		isSlash := r == '\\'
 

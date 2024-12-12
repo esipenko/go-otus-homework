@@ -10,13 +10,6 @@ linters-settings:
     statements: 80
   depguard:
     rules:
-      main:
-        files:
-          - $all
-          - "!$test"
-        allow:
-          - $gostd
-          - github.com/rivo/unise
       test:
         files:
           - "$test"
