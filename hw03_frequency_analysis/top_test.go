@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -78,5 +78,41 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("Single word", func(t *testing.T) {
+		text := "go go go"
+		expected := []string{"go"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("multiple words with same frequency", func(t *testing.T) {
+		text := "a b c d e f g h i j"
+		expected := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("case insensitive", func(t *testing.T) {
+		text := "Hello hello HELLO"
+		expected := []string{"hello"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("words with punctuation signs", func(t *testing.T) {
+		text := "hello, hello! hello? hello."
+		expected := []string{"hello"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("words with defis", func(t *testing.T) {
+		text := "Test-test, --- --- --- - - - - - ------- ------- -------, -------, -------,"
+		expected := []string{"-------", "---", "test-test"}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	t.Run("some words", func(t *testing.T) {
+		text := "dog,cat dog...cat, dogcat, dog-cat"
+		expected := []string{"dog,cat", "dog-cat", "dog...cat", "dogcat"}
+		require.Equal(t, expected, Top10(text))
 	})
 }
