@@ -111,8 +111,8 @@ func TestTop10(t *testing.T) {
 	})
 
 	t.Run("some words", func(t *testing.T) {
-		text := "dog,cat dog...cat, dogcat"
-		expected := []string{"dog,cat", "dog...cat", "dogcat"}
+		text := "dog,cat dog...cat, dogcat, dog-cat"
+		expected := []string{"dog,cat", "dog-cat", "dog...cat", "dogcat"}
 		require.Equal(t, expected, Top10(text))
 	})
 }
