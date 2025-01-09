@@ -1,11 +1,12 @@
 package hw04lrucache
 
 import (
-	"github.com/stretchr/testify/require"
 	"math/rand"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCache(t *testing.T) {
@@ -196,7 +197,7 @@ func TestCacheMultithreading(t *testing.T) {
 			}
 		}
 
-		// As we do it concourently, we actualy dont know, how many elements left in cache
+		// As we do it concourently, we actually dont know, how many elements left in cache
 		// It cannot be more than 500_000
 		require.Less(t, storedAmount, threshold)
 	})
