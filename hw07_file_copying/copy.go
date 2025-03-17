@@ -12,9 +12,14 @@ import (
 var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrPathsAreEqual         = errors.New("paths are equal")
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
+	if fromPath == toPath {
+		return ErrPathsAreEqual
+	}
+
 	inFile, err := os.Open(fromPath)
 	if err != nil {
 		fmt.Println(err)
@@ -66,6 +71,11 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 	_, err = io.CopyN(outFile, barReader, bytesToCopy)
 	if err != nil {
+		removeErr := os.Remove(to)
+		if removeErr != nil {
+			return fmt.Errorf("copy error: %w, remove error: %w", err, removeErr)
+		}
+
 		return err
 	}
 
