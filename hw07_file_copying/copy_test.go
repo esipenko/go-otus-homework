@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCopy(t *testing.T) {
@@ -22,8 +23,8 @@ func TestCopy(t *testing.T) {
 	t.Run("offset more than file length should throw error", func(t *testing.T) {
 		const fromPath = "testdata/simple_test.txt"
 		const toPath = "text.txt"
-		inFile, err := os.Open(fromPath)
 
+		inFile, err := os.Open(fromPath)
 		if err != nil {
 			return
 		}
@@ -41,7 +42,6 @@ func TestCopy(t *testing.T) {
 		const fromPath = "testdata/simple_test.txt"
 		const toPath = "text.txt"
 		inFile, err := os.Open(fromPath)
-
 		if err != nil {
 			return
 		}
@@ -63,7 +63,6 @@ func TestCopy(t *testing.T) {
 		const toPath = "text.txt"
 
 		inFile, err := os.Open(fromPath)
-
 		if err != nil {
 			return
 		}
@@ -87,7 +86,6 @@ func TestCopy(t *testing.T) {
 		const toPath = "text.txt"
 
 		inFile, err := os.Open(fromPath)
-
 		if err != nil {
 			return
 		}

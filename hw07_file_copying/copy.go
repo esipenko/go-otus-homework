@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/cheggaaa/pb/v3"
 	"io"
 	"os"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -15,22 +16,21 @@ var (
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	inFile, err := os.Open(fromPath)
-	defer inFile.Close()
-
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	outFile, err := os.Create(toPath)
-	defer outFile.Close()
+	defer inFile.Close()
 
+	outFile, err := os.Create(toPath)
 	if err != nil {
 		return err
 	}
 
-	fileInfo, err := inFile.Stat()
+	defer outFile.Close()
 
+	fileInfo, err := inFile.Stat()
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 	if offset > 0 {
 		_, err = inFile.Seek(offset, io.SeekStart)
-
 		if err != nil {
 			return err
 		}
@@ -66,11 +65,9 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	barReader := bar.NewProxyReader(inFile)
 
 	_, err = io.CopyN(outFile, barReader, bytesToCopy)
-
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
