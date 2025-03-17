@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -114,7 +113,18 @@ func TestCopy(t *testing.T) {
 		require.Equal(t, err, ErrPathsAreEqual)
 		outFile, _ := os.Open(toPath)
 		outFileInfo, _ := outFile.Stat()
-		fmt.Println(outFileInfo.Size())
+		require.Greater(t, outFileInfo.Size(), int64(0))
+	})
+
+	t.Run("equal paths throws error", func(t *testing.T) {
+		const fromPath = "testdata/simple_test.txt"
+		const toPath = "../hw07_file_copying/testdata/simple_test.txt"
+
+		err := Copy(fromPath, toPath, 0, 0)
+		require.Error(t, err)
+		require.Equal(t, err, ErrPathsAreEqual)
+		outFile, _ := os.Open(toPath)
+		outFileInfo, _ := outFile.Stat()
 		require.Greater(t, outFileInfo.Size(), int64(0))
 	})
 }

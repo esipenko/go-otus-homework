@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/cheggaaa/pb/v3"
 )
@@ -15,8 +16,26 @@ var (
 	ErrPathsAreEqual         = errors.New("paths are equal")
 )
 
+func arePathEqual(fromPath, toPath string) (bool, error) {
+	fromAbs, err := filepath.Abs(fromPath)
+	if err != nil {
+		return false, err
+	}
+	toAbs, err := filepath.Abs(toPath)
+	if err != nil {
+		return false, err
+	}
+
+	return fromAbs == toAbs, nil
+}
+
 func Copy(fromPath, toPath string, offset, limit int64) error {
-	if fromPath == toPath {
+	areEqual, err := arePathEqual(fromPath, toPath)
+	if err != nil {
+		return err
+	}
+
+	if areEqual {
 		return ErrPathsAreEqual
 	}
 
