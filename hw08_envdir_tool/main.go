@@ -14,8 +14,5 @@ func main() {
 		return
 	}
 
-	errorCode := RunCmd(cmd, env)
-	if errorCode != 0 {
-		fmt.Println(errorCode)
-	}
+	os.Exit(RunCmd(cmd, env))
 }
