@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +13,34 @@ type Environment map[string]EnvValue
 type EnvValue struct {
 	Value      string
 	NeedRemove bool
+}
+
+func handleEnvFile(filePath string, env Environment) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	fileState, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fileState.Size() == 0 {
+		env[filepath.Base(filePath)] = EnvValue{"", true}
+		return nil
+	}
+
+	fileScanner := bufio.NewScanner(file)
+	fileScanner.Split(bufio.ScanLines)
+	fileScanner.Scan()
+	envVal := fileScanner.Text()
+	envVal = strings.TrimRight(envVal, " \t")
+	envVal = strings.ReplaceAll(envVal, "\x00", "\n")
+
+	env[filepath.Base(filePath)] = EnvValue{envVal, false}
+	return nil
 }
 
 // ReadDir reads a specified directory and returns map of env variables.
@@ -33,31 +60,10 @@ func ReadDir(dir string) (Environment, error) {
 			continue
 		}
 
-		file, err := os.Open(filepath.Join(dir, entryName))
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-
-		fileState, err := file.Stat()
+		err := handleEnvFile(filepath.Join(dir, entryName), env)
 		if err != nil {
 			return nil, err
 		}
-
-		if fileState.Size() == 0 {
-			env[entryName] = EnvValue{"", true}
-			continue
-		}
-
-		fileScanner := bufio.NewScanner(file)
-		fileScanner.Split(bufio.ScanLines)
-		fileScanner.Scan()
-		envVal := fileScanner.Text()
-		envVal = strings.TrimRight(envVal, " \t")
-		envVal = strings.ReplaceAll(envVal, "\x00", "\n")
-
-		env[entryName] = EnvValue{envVal, false}
-		file.Close()
 	}
 
 	return env, nil

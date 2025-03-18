@@ -11,7 +11,11 @@ func main() {
 	env, err := ReadDir(dir)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
-	RunCmd(cmd, env)
+	errorCode := RunCmd(cmd, env)
+	if errorCode != 0 {
+		fmt.Println(errorCode)
+	}
 }
