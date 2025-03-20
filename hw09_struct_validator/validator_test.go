@@ -163,7 +163,7 @@ func TestStrRules(t *testing.T) {
 				if errors.As(err, &validationErrors) {
 					require.Equal(t, tt.len, validationErrors.len())
 				}
-				require.ErrorIs(t, err, tt.expectedErr)
+				require.ErrorAs(t, err, &tt.expectedErr)
 			} else {
 				require.NoError(t, err)
 			}
@@ -248,7 +248,7 @@ func TestIntRules(t *testing.T) {
 				if errors.As(err, &validationErrors) {
 					require.Equal(t, tt.len, validationErrors.len())
 				}
-				require.ErrorIs(t, err, tt.expectedErr)
+				require.ErrorAs(t, err, &tt.expectedErr)
 			} else {
 				require.NoError(t, err)
 			}
@@ -289,7 +289,7 @@ func TestValidate(t *testing.T) {
 				if errors.As(err, &validationErrors) {
 					require.Equal(t, tt.len, validationErrors.len())
 				}
-				require.ErrorIs(t, err, tt.expectedErr)
+				require.ErrorAs(t, err, &tt.expectedErr)
 			} else {
 				require.NoError(t, err)
 			}
