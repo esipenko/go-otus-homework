@@ -1,0 +1,27 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/fixme_my_friend/hw10_program_optimization
+cpu: Apple M1 Pro
+                │   old.txt   │      new.txt       │
+                │   sec/op    │   sec/op     vs base   │
+GetDomainSlow-8   1.085m ± 2%
+GetDomainFast-8                 885.8n ± 5%
+geomean           1.085m        885.8n       ? ¹ ²
+¹ benchmark set differs from baseline; geomeans may not be comparable
+² ratios must be >0 to compute geomean
+
+                │   old.txt    │       new.txt       │
+                │     B/op     │     B/op      vs base   │
+GetDomainSlow-8   321.5Ki ± 2%
+GetDomainFast-8                  4.062Ki ± 0%
+geomean           321.5Ki        4.062Ki       ? ¹ ²
+¹ benchmark set differs from baseline; geomeans may not be comparable
+² ratios must be >0 to compute geomean
+
+                │   old.txt   │      new.txt      │
+                │  allocs/op  │ allocs/op   vs base   │
+GetDomainSlow-8   3.098k ± 2%
+GetDomainFast-8                 2.000 ± 0%
+geomean           3.098k        2.000       ? ¹ ²
+¹ benchmark set differs from baseline; geomeans may not be comparable
+² ratios must be >0 to compute geomean

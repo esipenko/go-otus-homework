@@ -1,3 +1,4 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
@@ -33,6 +34,31 @@ func TestGetDomainStat(t *testing.T) {
 
 	t.Run("find 'unknown'", func(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("empty data", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(""), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("no email field", func(t *testing.T) {
+		noEmailData := `{"Id":1,"Name":"Howard Mendoza","Username":"0Oliver","Phone":"6-866-899-36-79","Password":"InAQJvsq","Address":"Blackbird Place 25"}`
+		result, err := GetDomainStat(bytes.NewBufferString(noEmailData), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("empty domain", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data), "")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("empty domain", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data), "")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
