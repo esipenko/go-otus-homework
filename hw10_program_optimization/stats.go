@@ -2,7 +2,6 @@ package hw10programoptimization
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"strings"
 
@@ -35,22 +34,27 @@ func getDomains(r io.Reader, domain string) (emails DomainStat, err error) {
 			continue
 		}
 
-		key := strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])
+		slitted := strings.SplitN(user.Email, "@", 2)
+		if len(slitted) != 2 {
+			continue
+		}
+		key := strings.ToLower(slitted[1])
 		val, ok := emails[key]
 
 		if !ok {
 			matched := strings.HasSuffix(strings.ToLower(user.Email), "@"+key)
 
-			if matched {
-				emails[key] = 1
+			if !matched {
+				continue
 			}
-		} else {
-			emails[key] = val + 1
 		}
+
+		emails[key] = val + 1
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
+
 	return
 }
