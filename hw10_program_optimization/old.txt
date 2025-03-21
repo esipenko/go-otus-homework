@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/fixme_my_friend/hw10_program_optimization
+cpu: Apple M1 Pro
+BenchmarkGetDomainSlow-8   	    1010	   1049864 ns/op	  320955 B/op	    3022 allocs/op
+BenchmarkGetDomainSlow-8   	     939	   1090792 ns/op	  345198 B/op	    3250 allocs/op
+BenchmarkGetDomainSlow-8   	    1004	   1106125 ns/op	  322943 B/op	    3040 allocs/op
+BenchmarkGetDomainSlow-8   	     994	   1058301 ns/op	  326109 B/op	    3070 allocs/op
+BenchmarkGetDomainSlow-8   	    1010	   1062799 ns/op	  321030 B/op	    3022 allocs/op
+BenchmarkGetDomainSlow-8   	    1005	   1053772 ns/op	  322585 B/op	    3037 allocs/op
+BenchmarkGetDomainSlow-8   	     880	   1464793 ns/op	  368323 B/op	    3467 allocs/op
+BenchmarkGetDomainSlow-8   	     860	   1319945 ns/op	  376955 B/op	    3548 allocs/op
+BenchmarkGetDomainSlow-8   	     822	   1246713 ns/op	  394250 B/op	    3711 allocs/op
+BenchmarkGetDomainSlow-8   	    1069	   1059415 ns/op	  303395 B/op	    2855 allocs/op
+PASS
+ok  	github.com/fixme_my_friend/hw10_program_optimization	53.703s
