@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -44,7 +45,8 @@ func main() {
 		defer cancel()
 		err := client.Send()
 		if err != nil {
-			fmt.Println("Error sending:", err)
+			log.Println("Error sending:", err)
+			return
 		}
 	}()
 
@@ -53,7 +55,8 @@ func main() {
 
 		err := client.Receive()
 		if err != nil {
-			fmt.Println("Error receiving:", err.Error())
+			log.Println("Error sending:", err)
+			return
 		}
 	}()
 
