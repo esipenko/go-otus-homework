@@ -2,16 +2,9 @@ package main
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
 	"io"
 	"net"
 	"time"
-)
-
-var (
-	ErrClosedByUser   = errors.New("connection closed by user")
-	ErrClosedByServer = errors.New("connection closed by server")
 )
 
 type TelnetClient interface {
@@ -40,46 +33,36 @@ func (c *client) Connect() error {
 }
 
 func (c *client) Send() error {
-	reader := bufio.NewReader(c.in)
-	for {
-		text, err := reader.ReadString('\n')
+	scanner := bufio.NewScanner(c.in)
+	for scanner.Scan() {
+		text := scanner.Text()
+		_, err := c.connection.Write([]byte(text + "\n"))
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return ErrClosedByUser
-			}
-
-			return err
-		}
-
-		_, err = c.connection.Write([]byte(text))
-		if err != nil {
-			fmt.Println("Error writing:", err)
 			return err
 		}
 	}
+
+	return scanner.Err()
 }
 
 func (c *client) Receive() error {
-	reader := bufio.NewReader(c.connection)
-	for {
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return ErrClosedByServer
-			}
-			return err
-		}
-
-		_, err = c.out.Write([]byte(text))
-		if err != nil {
-			return err
-		}
-	}
+	_, err := io.Copy(c.out, c.connection)
+	return err
 }
 
-func (c *client) Close() error { return c.connection.Close() }
+func (c *client) Close() error {
+	if c.connection != nil {
+		return c.connection.Close()
+	}
+
+	return nil
+}
+
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
 	return &client{
-		address: address, in: in, out: out, timeout: timeout,
+		address: address,
+		timeout: timeout,
+		in:      in,
+		out:     out,
 	}
 }

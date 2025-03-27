@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -9,6 +10,11 @@ import (
 	"os/signal"
 	"strings"
 	"time"
+)
+
+var (
+	ErrClosedByUser   = errors.New("connection closed by user")
+	ErrClosedByServer = errors.New("connection closed by server")
 )
 
 var timeout string
@@ -31,7 +37,7 @@ func main() {
 	}
 
 	addr := strings.Join(args, ":")
-
+	log.Println("Connecting to", addr)
 	client := NewTelnetClient(addr, duration, os.Stdin, os.Stdout)
 	err = client.Connect()
 	if err != nil {
@@ -44,20 +50,23 @@ func main() {
 	go func() {
 		defer cancel()
 		err := client.Send()
-		if err != nil {
-			log.Println("Error sending:", err)
+
+		if err == nil {
+			log.Println(ErrClosedByUser.Error())
 			return
 		}
+
+		log.Println(err)
 	}()
 
 	go func() {
 		defer cancel()
-
 		err := client.Receive()
-		if err != nil {
-			log.Println("Error sending:", err)
+		if err == nil {
+			log.Println(ErrClosedByServer.Error())
 			return
 		}
+		log.Fatal(err)
 	}()
 
 	<-ctx.Done()

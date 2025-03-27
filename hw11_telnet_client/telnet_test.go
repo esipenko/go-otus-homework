@@ -36,10 +36,10 @@ func TestTelnetClient(t *testing.T) {
 			in.WriteString("hello\n")
 			err = client.Send()
 
-			require.ErrorIs(t, err, ErrClosedByUser)
+			require.NoError(t, err)
 
 			err = client.Receive()
-			require.ErrorIs(t, err, ErrClosedByServer)
+			require.NoError(t, err)
 			require.Equal(t, "world\n", out.String())
 		}()
 
@@ -63,4 +63,34 @@ func TestTelnetClient(t *testing.T) {
 
 		wg.Wait()
 	})
+}
+
+func TestClientClose(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, l.Close()) }()
+
+	client := NewTelnetClient(l.Addr().String(), 10*time.Second, nil, nil)
+	err = client.Connect()
+	require.NoError(t, err)
+
+	err = client.Close()
+	require.NoError(t, err)
+}
+
+func TestClientConnect(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:")
+	require.NoError(t, err)
+	defer func() { require.NoError(t, l.Close()) }()
+
+	client := NewTelnetClient(l.Addr().String(), 10*time.Second, nil, nil)
+	err = client.Connect()
+	require.NoError(t, err)
+	defer func() { require.NoError(t, client.Close()) }()
+}
+
+func TestClientConnectError(t *testing.T) {
+	client := NewTelnetClient("127.0.0.1:", 10*time.Second, nil, nil)
+	err := client.Connect()
+	require.Error(t, err)
 }
